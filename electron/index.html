@@ -1,0 +1,27 @@
+<div id="root"></div>
+<script>
+const root = document.querySelector("#root");
+const electron = require("electron");
+const Screen = electron.screen;
+
+function refreshButtons() {
+    let child;
+    while (child = root.firstChild) root.removeChild(child);
+
+    Screen.getAllDisplays().forEach(disp => {
+        const rect = disp.bounds;
+        const button = document.createElement("button");
+        button.textContent = `#${disp.id}, x: ${rect.x}, y: ${rect.y}, w: ${rect.width}, h: ${rect.height}`;
+        root.appendChild(button);
+        button.onclick = () => {
+            refreshButtons();
+            const bw = new electron.remote.BrowserWindow();
+            bw.setPosition(rect.x, rect.y);
+            bw.setSize(rect.width, rect.height);
+            bw.loadURL(`file://${__dirname}/sub.html`);
+        };
+    });
+}
+
+refreshButtons();
+</script>
