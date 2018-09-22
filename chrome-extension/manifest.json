@@ -1,0 +1,11 @@
+{
+  "name": "Display information survey",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "Survey Extension",
+  "icons": {},
+  "permissions": ["system.display"],
+  "background": {
+    "scripts": ["background.js"]
+  }
+}
