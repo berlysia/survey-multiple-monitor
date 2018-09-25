@@ -22,12 +22,28 @@ class Form1 : Form
 {
     public Form1()
     {
+        refreshButtons();
+    }
+
+    void refreshButtons()
+    {
+        Controls.Clear();
+        {
+            Button refreshButton = new Button()
+            {
+                Text = "Refresh",
+                Location = new Point(this.Width / 2 - 120, 0),
+                Size = new Size(240, 30),
+            };
+            refreshButton.Click += new EventHandler(refresh_Click);
+            Controls.Add(refreshButton);
+        }
         var buttons = Screen.AllScreens.Select((screen, index) =>
         {
             Button button = new Button()
             {
                 Text = screen.DeviceName + "\n" + screen.Bounds.ToString(),
-                Location = new Point(this.Width / 2 - 120, 60 * index),
+                Location = new Point(this.Width / 2 - 120, 30 + 60 * index),
                 Size = new Size(240, 60),
                 TabIndex = index,
             };
@@ -39,6 +55,11 @@ class Form1 : Form
         {
             Controls.Add(button);
         }
+    }
+
+    void refresh_Click(object sender, EventArgs e)
+    {
+        refreshButtons();
     }
 
     void button_Click(object sender, EventArgs e)

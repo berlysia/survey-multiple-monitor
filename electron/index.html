@@ -1,27 +1,48 @@
+<button id="refresh">refresh</button>
+<div id="windowSize"></div>
 <div id="root"></div>
 <script>
-const root = document.querySelector("#root");
+const rootEl = document.querySelector("#root");
+const refreshEl = document.querySelector("#refresh");
+const windowSizeEl = document.querySelector("#windowSize");
 const electron = require("electron");
 const Screen = electron.screen;
+let bw = null;
+
+function applyScaleOnNegative(value, primaryScale, currentScale) {
+    if (0 <= value) return value;
+    return Math.round(value * currentScale / primaryScale);
+}
 
 function refreshButtons() {
     let child;
-    while (child = root.firstChild) root.removeChild(child);
+    while (child = rootEl.firstChild) rootEl.removeChild(child);
+
+    const pScale = Screen.getPrimaryDisplay().scaleFactor;
 
     Screen.getAllDisplays().forEach(disp => {
         const rect = disp.bounds;
         const button = document.createElement("button");
         button.textContent = `#${disp.id}, x: ${rect.x}, y: ${rect.y}, w: ${rect.width}, h: ${rect.height}`;
-        root.appendChild(button);
+        rootEl.appendChild(button);
         button.onclick = () => {
             refreshButtons();
-            const bw = new electron.remote.BrowserWindow();
-            bw.setPosition(rect.x, rect.y);
+            if (bw && !bw.isDestroyed()) bw.close();
+            bw = new electron.remote.BrowserWindow();
+            bw.setPosition(applyScaleOnNegative(rect.x, pScale, disp.scaleFactor), applyScaleOnNegative(rect.y, pScale, disp.scaleFactor));
+            // bw.setPosition(rect.x, rect.y);
             bw.setSize(rect.width, rect.height);
+            windowSizeEl.innerHTML = `x: ${rect.x}, y: ${rect.y}, w: ${rect.width}, h: ${rect.height}`;
+            windowSizeEl.innerHTML += `<br />x: ${applyScaleOnNegative(rect.x, pScale, disp.scaleFactor)}, y: ${applyScaleOnNegative(rect.y, pScale, disp.scaleFactor)}, w: ${rect.width}, h: ${rect.height}`;
             bw.loadURL(`file://${__dirname}/sub.html`);
+            bw.webContents.on("did-finish-load", () => {
+                const bwRect = bw.getBounds();
+                windowSizeEl.innerHTML += `<br />x: ${bwRect.x}, y: ${bwRect.y}, w: ${bwRect.width}, h: ${bwRect.height}`;
+            });
         };
     });
 }
 
+refreshEl.addEventListener("click", refreshButtons);
 refreshButtons();
 </script>
